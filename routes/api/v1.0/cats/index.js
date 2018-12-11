@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../../../models/db');
 const paginate = require('../../../../lib/paginate');
+const config = require('../../../../config/config.json');
+
+const prefixURI =
+  process.env.APP_RUN === 'production'
+    ? config.locationProd
+    : config.locationDEV;
 
 const passport = require('passport');
 const auth = passport.authenticate('jwt', { session: false });
@@ -23,7 +29,7 @@ router.get('/', function(req, res) {
         if (page.nextPage) {
           res.header(
             'Link',
-            `http://localhost:3000/api/v1.0/cats?offset=${
+            `${prefixURI}/api/v1.0/cats?offset=${
               page.nextPage
             }&limit=${perPage}`
           );
@@ -56,10 +62,7 @@ router.get('/:id', function(req, res) {
 router.post('/', auth, function(req, res) {
   db.add(req.body)
     .then(results => {
-      res.header(
-        'Location',
-        `http://localhost:3000/api/v1.0/cats/${results._id}`
-      );
+      res.header('Location', `${prefixURI}/api/v1.0/cats/${results._id}`);
       res.status(201).json(results);
     })
     .catch(err => {
